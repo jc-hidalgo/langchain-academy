@@ -1,0 +1,28 @@
+FROM ghcr.io/astral-sh/uv:debian-slim AS builder
+
+ENV PATH=/opt/venv/bin:$PATH \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON_INSTALL_DIR=/opt/python
+
+WORKDIR /workspaces/lca-lc-foundations
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    less \
+    curl \
+    git \
+    libportaudio2 \
+    libasound2-plugins \
+    alsa-utils \
+    pulseaudio-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && git config --global core.autocrlf true \
+    && git config --global user.name "lathov" \
+    && git config --global user.email "jchsal@gmail.com"
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --all-groups --no-install-project
